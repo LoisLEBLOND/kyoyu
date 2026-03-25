@@ -1,8 +1,33 @@
 <?php
-require_once 'config.php';
+require_once 'config.php'; 
+
+$message_status = "";
+
 if (isset($_POST['register'])) {
-    $username = $_POST['utilisateur']; 
-    $password = $_POST['mdp'];
+    
+    $nom = $_POST['utilisateur'];
+    $mdp = $_POST['mdp'];
+
+    $commande = "py script.py hash " . escapeshellarg($mdp);
+    $sortie = shell_exec($commande);
+    
+    $mdp_hache = trim($sortie);
+
+    if (!empty($mdp_hache)) {
+        try {
+            $req = $database->prepare("INSERT INTO utilisateurs (nom, mdp) VALUES (:nom, :mdp)");
+            $req->execute([
+                'nom' => $nom,
+                'mdp' => $mdp_hache
+            ]);
+            $message_status = "$nom est bien enregistré";
+        } catch (Exception $e) {
+            $message_status = "Erreur BDD : " . $e->getMessage();
+        }
+    } else {
+        $message_status = "Erreur : Le script Python n'a pas répondu.";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -17,12 +42,12 @@ if (isset($_POST['register'])) {
     <h1>Inscription</h1>
     <form class="form" method="POST">
         <label for="">Nom d'utilisateur</label>
-            <input type="text" name="username" required>
+            <input type="text" name="utilisateur" required>
         <br>
         <label for="">Mot de passe</label>
-            <input type="password" name="password" required>
+            <input type="password" name="mdp" required>
         <br>
-        <button type="submit">S'inscrire</button>
+        <button type="submit" name="register">S'inscrire</button>
     </form>
     </div>
 </body>
