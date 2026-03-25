@@ -9,11 +9,11 @@ if (isset($_POST['register'])) {
     $mdp = $_POST['mdp'];
 
     $commande = "py script.py hash " . escapeshellarg($mdp);
-    $sortie = shell_exec($commande);
+    $sortie = shell_exec($commande . ' 2>&1');
     
-    $mdp_hache = trim($sortie);
+    $mdp_hache = trim($sortie ?? '');
 
-    if (!empty($mdp_hache)) {
+    if (!empty($mdp_hache) && stripos($mdp_hache, 'erreur') === false) {
         try {
             $req = $database->prepare("INSERT INTO utilisateurs (nom, mdp) VALUES (:nom, :mdp)");
             $req->execute([
