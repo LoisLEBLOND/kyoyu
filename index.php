@@ -7,7 +7,7 @@ if (isset($_SESSION['message_status'])) {
     unset($_SESSION['message_status']);
 }
 
-if (isset($_POST['register'])) {
+if (isset($_POST['inscription'])) {
     
     $nom = trim($_POST['utilisateur'] ?? '');
     $mdp = $_POST['mdp'] ?? '';
@@ -35,6 +35,39 @@ if (isset($_POST['register'])) {
         $message_status = "Erreur : Le script Python n'a pas répondu.";
     }
 }
+if (isset($_POST['connexion'])) {
+    
+    $nom = trim($_POST['utilisateur'] ?? '');
+    $mdp = $_POST['mdp'] ?? '';
+
+    if ($nom === '' || $mdp === '') {
+        $message_status = "Veuillez fournir un nom d'utilisateur et un mot de passe.";
+    } else {
+        try {
+            $req = $database->prepare("SELECT mdp FROM utilisateurs WHERE nom = :nom");
+            $req->execute(['nom' => $nom]);
+            $utilisateur = $req->fetch(PDO::FETCH_ASSOC);
+
+            if ($utilisateur) {
+                $pythonPath = "C:\\Users\\loisl\\AppData\\Local\\Programs\\Python\\Python38\\python.exe";
+                $commande = "$pythonPath script.py check " . escapeshellarg($mdp) . " " . escapeshellarg($utilisateur['mdp']) . " 2>&1";
+                $sortie = shell_exec($commande);
+                
+                if (trim($sortie) === 'Mot de passe correct') {
+                    $_SESSION['message_status'] = htmlspecialchars($nom, ENT_QUOTES, 'UTF-8') . " est connecté";
+                    header('Location: index.php');
+                    exit;
+                } else {
+                    $message_status = "Mot de passe incorrect.";
+                }
+            } else {
+                $message_status = "Utilisateur non trouvé.";
+            }
+        } catch (Exception $e) {
+            $message_status = "Erreur BDD : " . $e->getMessage();
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -45,6 +78,11 @@ if (isset($_POST['register'])) {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <?php if (!empty($message_status)): ?>
+        <div style="color: #ff6b6b; margin-bottom: 20px; font-weight: bold;">
+            <?php echo $message_status; ?>
+        </div>
+    <?php endif; ?>
     <div class="formulaire">
     <h1>Inscription</h1>
     <form class="form" method="POST">
@@ -54,7 +92,7 @@ if (isset($_POST['register'])) {
         <label for="">Mot de passe</label>
             <input type="password" name="mdp" required>
         <br>
-        <button type="submit" name="register">S'inscrire</button>
+        <button type="submit" name="inscription">S'inscrire</button>
     </form>
     </div>
     <div class="formulaire">
@@ -66,7 +104,7 @@ if (isset($_POST['register'])) {
         <label for="">Mot de passe</label>
             <input type="password" name="mdp" required>
         <br>
-        <button type="submit" name="login">Se connecter</button>
+        <button type="submit" name="connexion">Se connecter</button>
     </form>
     </div>
 </body>

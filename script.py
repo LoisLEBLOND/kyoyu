@@ -1,5 +1,6 @@
 import sys
 import hashlib
+import uuid
 
 try:
     import bcrypt
@@ -14,7 +15,8 @@ if mode == 'hash':
         hash_mdp = bcrypt.hashpw(mdp, bcrypt.gensalt()).decode('utf-8')
     else:
         hash_mdp = hashlib.sha256(mdp).hexdigest()
-    print(hash_mdp)
+    user_uuid = uuid.uuid4()
+    print(f"{hash_mdp}|{user_uuid}")
 
 elif mode == 'check':
     mdp_tape = sys.argv[2].encode('utf-8')
@@ -24,7 +26,3 @@ elif mode == 'check':
     else:
         ok = hashlib.sha256(mdp_tape).hexdigest() == hash_bdd
     print('Mot de passe correct' if ok else 'Mot de passe incorrect')
-
-else:
-    print('Erreur: mode inconnu')
-    sys.exit(1)
