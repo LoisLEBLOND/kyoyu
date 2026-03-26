@@ -119,7 +119,7 @@ if (isset($_SESSION["message_sent"])) {
 </head>
 <body>
     <img src="images/japon.jpg" alt="Kyōyū" style="display: block; margin: 20px auto; width: 150px; height: auto; border-radius: 50%; border: 3px solid #ff0000;">
-    <h1>OHAYŌ, BIENVENUE SUR KYŌYŪ(共有) - DES</h1>
+    <h1>OHAYŌ, BIENVENUE SUR KYŌYŪ(共有) - DESU</h1>
     <?php if (!empty($message_status)): ?>
         <div style="color: #ff6b6b; margin-bottom: 20px; font-weight: bold;">
             <?php echo $message_status; ?>
