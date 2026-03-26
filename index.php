@@ -3,7 +3,7 @@ session_start();
 require_once "config.php";
 
 $pythonPath = "C:\\Python314\\python.exe";
-#mon chemin python est vers python314 au lieu de python38 donc je force
+#mon chemin python est cassé donc je force
 
 if (isset($_GET["logout"])) {
     session_destroy();
@@ -89,7 +89,6 @@ if (isset($_POST["send_message"]) && isset($_SESSION["user_uuid"])) {
     $cle = $groupe['cle_chiffrement'];
     $commande = "$pythonPath script.py encrypt " . escapeshellarg($contenu) . " " . escapeshellarg($cle) . " 2>&1";
     $resultat_python = shell_exec($commande);
-// On vérifie si Python a répondu avant de "Trimmer"
 $contenu_chiffre = ($resultat_python !== null) ? trim($resultat_python) : ""; 
 
 if (empty($contenu_chiffre)) {
