@@ -25,7 +25,7 @@ if (isset($_POST["inscription"])) {
     
     $infos = explode("|", trim($sortie));
     
-    if (count($infos) === 2) 
+    if (count($infos) === 2) {
         $mdp_hache = trim($infos[0]);
         $user_uuid = trim($infos[1]);
         
@@ -42,7 +42,7 @@ if (isset($_POST["inscription"])) {
                 exit;
             } catch (Exception $e) {
                 $message_status = "Erreur BDD : " . $e->getMessage();
-            }
+            }};
 
 }
 if (isset($_POST["connexion"])) {
