@@ -1,5 +1,6 @@
 body{
-    background-color: #000000;
+    background-image: url("images/fleures_jap.jpg");
+    background-size: cover;
     font-family: Arial, sans-serif;
     text-align:center;
     padding: 50px;

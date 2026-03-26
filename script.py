@@ -1,7 +1,6 @@
 import sys
 import hashlib
 import uuid
-from cryptography.fernet import Fernet
 
 try:
     import bcrypt
@@ -31,15 +30,18 @@ elif mode == "check":
     print("Mot de passe correct" if ok else "Mot de passe incorrect")
 
 elif mode == "gen_key":
+    from cryptography.fernet import Fernet
     print(Fernet.generate_key().decode())
 
 elif mode == "encrypt":
+    from cryptography.fernet import Fernet
     texte = sys.argv[2].encode()
     clé= sys.argv[3].encode()
     f = Fernet(clé)
     print(f.encrypt(texte).decode())
 
 elif mode == "decrypt":
+    from cryptography.fernet import Fernet
     message_chiffre = sys.argv[2].encode()
     clé = sys.argv[3].encode()
     f = Fernet(clé)

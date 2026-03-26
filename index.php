@@ -2,7 +2,7 @@
 session_start();
 require_once "config.php";
 
-$pythonPath = "C:\\Users\\loisl\\AppData\\Local\\Programs\\Python\\Python38\\python.exe";
+$pythonPath = "C:\\Python314\\python.exe";
 #mon chemin python est vers python314 au lieu de python38 donc je force
 
 if (isset($_GET["logout"])) {
@@ -29,21 +29,22 @@ if (isset($_POST["inscription"])) {
         $mdp_hache = trim($infos[0]);
         $user_uuid = trim($infos[1]);
         
-        if (!empty($mdp_hache) && !empty($user_uuid)) 
-            try {
-                $req = $database->prepare("INSERT INTO utilisateurs (nom, mdp, uuid) VALUES (:nom, :mdp, :uuid)");
-                $req->execute([
-                    "nom" => $nom,
-                    "mdp" => $mdp_hache,
-                    "uuid" => $user_uuid
-                ]);
-                $_SESSION["message_status"] = htmlspecialchars($nom, ENT_QUOTES, "UTF-8") . " est bien enregistré";
-                header("Location: index.php");
-                exit;
-            } catch (Exception $e) {
-                $message_status = "Erreur BDD : " . $e->getMessage();
-            }};
-
+        try {
+            $req = $database->prepare("INSERT INTO utilisateurs (nom, mdp, uuid) VALUES (:nom, :mdp, :uuid)");
+            $req->execute([
+                "nom" => $nom,
+                "mdp" => $mdp_hache,
+                "uuid" => $user_uuid
+            ]);
+            $_SESSION["message_status"] = htmlspecialchars($nom) . " est bien enregistré";
+            header("Location: index.php");
+            exit;
+        } catch (Exception $e) {
+            $message_status = "Erreur BDD : " . $e->getMessage();
+        }
+    } else {
+        $message_status = "Erreur Python : " . htmlspecialchars($sortie);
+    }
 }
 if (isset($_POST["connexion"])) {
     
@@ -59,7 +60,6 @@ if (isset($_POST["connexion"])) {
             $utilisateur = $req->fetch(PDO::FETCH_ASSOC);
 
             if ($utilisateur) {
-                $pythonPath = "C:\\Users\\loisl\\AppData\\Local\\Programs\\Python\\Python38\\python.exe";
                 $commande = "$pythonPath script.py check " . escapeshellarg($mdp) . " " . escapeshellarg($utilisateur["mdp"]) . " 2>&1";
                 $sortie = shell_exec($commande);
                 
@@ -88,13 +88,20 @@ if (isset($_POST["send_message"]) && isset($_SESSION["user_uuid"])) {
     $groupe = $stmt->fetch();
     $cle = $groupe['cle_chiffrement'];
     $commande = "$pythonPath script.py encrypt " . escapeshellarg($contenu) . " " . escapeshellarg($cle) . " 2>&1";
-    $contenu_chiffre = trim(shell_exec($commande));
+    $resultat_python = shell_exec($commande);
+// On vérifie si Python a répondu avant de "Trimmer"
+$contenu_chiffre = ($resultat_python !== null) ? trim($resultat_python) : ""; 
+
+if (empty($contenu_chiffre)) {
+    $message_status = "Erreur : Le chiffrement du message a échoué.";
+} else {
     $req = $database->prepare("INSERT INTO messages (uuid, groupe_id, contenu, `date/heure`) VALUES (:uuid, :groupe_id, :contenu, NOW())");
     $req->execute([
         "uuid" => $_SESSION["user_uuid"],
         "groupe_id" => 1,
         "contenu" => $contenu_chiffre
     ]);
+}
 }
 
 $message_sent = $_SESSION["message_sent"] ?? "";
@@ -109,8 +116,11 @@ if (isset($_SESSION["message_sent"])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyōyū</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/vnd.icon" href="images/japon.ico">
 </head>
 <body>
+    <img src="images/japon.jpg" alt="Kyōyū" style="display: block; margin: 20px auto; width: 150px; height: auto; border-radius: 50%; border: 3px solid #ff0000;">
+    <h1>OHAYŌ, BIENVENUE SUR KYŌYŪ(共有) - DES</h1>
     <?php if (!empty($message_status)): ?>
         <div style="color: #ff6b6b; margin-bottom: 20px; font-weight: bold;">
             <?php echo $message_status; ?>
